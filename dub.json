@@ -1,0 +1,10 @@
+{
+	"name": "threed",
+	"description": "A D ThreeD graphics library built on top of glfw3 and Derelict",
+	"copyright": "Copyright © 2014 Alex Parker",
+	"authors": ["Alex Parker"],
+	"dependencies": {
+		"derelict-gl3": "~master",
+		"derelict-glfw3": "~master"
+	}
+}
