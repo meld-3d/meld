@@ -1,100 +1,164 @@
+import derelict.opengl3.gl3;
+import std.stdio;
+import std.conv;
+
+struct Vertex
+{
+    float x, y, z, nx, ny, nz, tx, ty;
+}
 
 class Mesh
 {
-	this(Vertex* verts, int numVerts, unsigned short* indices, int numIndices, GLEnum drawMode)
+private:
+	GLuint m_vertexBuffer, m_indexBuffer, m_vertexLayout;
+	int m_numIndices;
+	GLenum m_drawMode;
+
+	static void ErrCheck()
+	{
+		/*GLenum glErr;
+	    int    retCode = 0;
+
+	    glErr = glGetError();
+	    if (glErr != GL_NO_ERROR)
+	    {
+	        assert(0, "OpenGL error: "~to!string(glErr));
+	    }*/
+	}
+
+public:
+	this(ref Vertex[] verts, int numVerts, ref ushort[] indices, int numIndices, GLenum drawMode)
 	{
 		//Create the vertex buffer
-		HR(glGenBuffers(1, &m_vertexBuffer));
-		HR(glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
-		HR(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numVerts, verts, GL_STATIC_DRAW));
+		glGenBuffers(1, &m_vertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, Vertex.sizeof*numVerts, &verts[0], GL_STATIC_DRAW);
+		ErrCheck();
 
 		//Create the index buffer
-		HR(glGenBuffers(1, &m_indexBuffer));
-		HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
-		HR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)*numIndices, indices, GL_STATIC_DRAW));
+		glGenBuffers(1, &m_indexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ushort.sizeof*numIndices, &indices[0], GL_STATIC_DRAW);
 		m_numIndices = numIndices;
+		ErrCheck();
 
 		//Create the vertex layout
-		HR(glGenVertexArrays(1, &m_vertexLayout));
-		HR(glBindVertexArray(m_vertexLayout));
+		glGenVertexArrays(1, &m_vertexLayout);
+		glBindVertexArray(m_vertexLayout);
 
 		//Bind the vertex buffer to the layout and specify the format
-		HR(glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
-		HR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(0)));
-		HR(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(float)*3)));
-		HR(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(float)*6)));
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(0));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*3));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*6));
+		ErrCheck();
 
-		HR(glEnableVertexAttribArray(0));
-		HR(glEnableVertexAttribArray(1));
-		HR(glEnableVertexAttribArray(2));
-		HR(glDisableVertexAttribArray(3));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		glDisableVertexAttribArray(3);
 
 		//Bind the index buffer to the layout
-		HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
 	    m_drawMode = drawMode;
+		ErrCheck();
 
 		//Null out everything
-		HR(glBindVertexArray(0));
-		HR(glBindBuffer(GL_ARRAY_BUFFER, 0));
-		HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		ErrCheck();
+	}
+
+	~this()
+	{
+		//Delete the buffers and vertex arrays
+		glDeleteBuffers(1, &m_vertexBuffer);
+		glDeleteBuffers(1, &m_indexBuffer);
+		glDeleteVertexArrays(1, &m_vertexLayout);
+	}
+
+	void Draw()
+	{
+		glBindVertexArray(m_vertexLayout);
+		glDrawRangeElements(m_drawMode, 0, m_numIndices, m_numIndices, GL_UNSIGNED_SHORT, null);
+		ErrCheck();
+	}
+
+	static Mesh CreatePlane( float width, float height )
+	{
+		float hw = width * 0.5f;
+		float hh = height * 0.5f;
+
+		Vertex verts[] = 
+		[
+			Vertex(-hw, 0.0f, -hh, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f ),
+			Vertex(  hw, 0.0f, -hh, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f ),
+			Vertex(  hw, 0.0f,  hh, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f ),
+			Vertex( -hw, 0.0f,  hh, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f ),
+		];
+		ushort indices[] =
+		[
+			0, 1, 2,
+			0, 2, 3
+		];
+
+		return new Mesh(verts, 4, indices, 6, GL_TRIANGLES);
 	}
 }
 
 /*#include "glwt.h"
 #include "Mesh.h"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define cast(char*)(i) ((char *)NULL + (i))
 
 Mesh::Mesh( Vertex* verts, int numVerts, unsigned short* indices, int numIndices, GLenum drawMode )
 {
 	//Create the vertex buffer
-	HR(glGenBuffers(1, &m_vertexBuffer));
-	HR(glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
-	HR(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numVerts, verts, GL_STATIC_DRAW));
+	glGenBuffers(1, &m_vertexBuffer));
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numVerts, verts, GL_STATIC_DRAW));
 
 	//Create the index buffer
-	HR(glGenBuffers(1, &m_indexBuffer));
-	HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
-	HR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)*numIndices, indices, GL_STATIC_DRAW));
+	glGenBuffers(1, &m_indexBuffer));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)*numIndices, indices, GL_STATIC_DRAW));
 	m_numIndices = numIndices;
 
 	//Create the vertex layout
-	HR(glGenVertexArrays(1, &m_vertexLayout));
-	HR(glBindVertexArray(m_vertexLayout));
+	glGenVertexArrays(1, &m_vertexLayout));
+	glBindVertexArray(m_vertexLayout));
 
 	//Bind the vertex buffer to the layout and specify the format
-	HR(glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
-	HR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(0)));
-	HR(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(float)*3)));
-	HR(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(float)*6)));
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), cast(char*)(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), cast(char*)(sizeof(float)*3);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), cast(char*)(sizeof(float)*6)));
 
-	HR(glEnableVertexAttribArray(0));
-	HR(glEnableVertexAttribArray(1));
-	HR(glEnableVertexAttribArray(2));
-	HR(glDisableVertexAttribArray(3));
+	glEnableVertexAttribArray(0));
+	glEnableVertexAttribArray(1));
+	glEnableVertexAttribArray(2));
+	glDisableVertexAttribArray(3));
 
 	//Bind the index buffer to the layout
-	HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer));
     m_drawMode = drawMode;
 
 	//Null out everything
-	HR(glBindVertexArray(0));
-	HR(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	HR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	glBindVertexArray(0));
+	glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
 Mesh::~Mesh()
 {
-	//Delete the buffers and vertex arrays
-	glDeleteBuffers(1, &m_vertexBuffer);
-	glDeleteBuffers(1, &m_indexBuffer);
-	glDeleteVertexArrays(1, &m_vertexLayout);
+	
 }
 
 void Mesh::Draw()
 {
-	HR(glBindVertexArray(m_vertexLayout));
-	HR(glDrawRangeElements(m_drawMode, 0, m_numIndices, m_numIndices, GL_UNSIGNED_SHORT, NULL));
+	glBindVertexArray(m_vertexLayout));
+	glDrawRangeElements(m_drawMode, 0, m_numIndices, m_numIndices, GL_UNSIGNED_SHORT, NULL));
 }
 
 MeshPtr Mesh::CreatePlane( float width, float height )

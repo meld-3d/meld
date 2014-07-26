@@ -3,6 +3,9 @@ import std.conv;
 import derelict.opengl3.gl3;
 import derelict.glfw3.glfw3;
 
+import Mesh;
+import Camera;
+
 import std.c.stdio : fputs, fputc, stderr;
 
 extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
@@ -40,10 +43,15 @@ void main()
 	writefln("Version:  %s",   to!string(glGetString(GL_VERSION)));
 	writefln("GLSL:     %s\n", to!string(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
+	Mesh mesh = Mesh.Mesh.CreatePlane(10.0f, 10.0f);
+	Camera camera = new Camera(640, 480);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0, 0.2, 0.8, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		mesh.Draw();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
