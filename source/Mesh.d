@@ -4,6 +4,18 @@ import std.conv;
 
 struct Vertex
 {
+	this(float x, float y, float z, float nx, float ny, float nz, float tx, float ty)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.nx = nx;
+		this.ny = ny;
+		this.nz = nz;
+		this.tx = tx;
+		this.ty = ty;
+	}
+
     float x, y, z, nx, ny, nz, tx, ty;
 }
 
