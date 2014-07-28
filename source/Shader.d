@@ -4,6 +4,7 @@ import std.file;
 import std.stdio;
 import std.ascii : newline;
 import Maths;
+import Texture;
 
 class Shader
 {
@@ -16,6 +17,7 @@ private:
 	}
 
 	GLuint m_program, m_pixelShader = 0, m_vertexShader = 0;
+	Texture[string] m_textures;
 	static GLuint s_currentShader = 0;
 
 public:
@@ -142,6 +144,33 @@ private:
 		}
 	}
 
+	bool Load(string vertexShaderFile, string pixelShaderFile)
+	{
+		if (LoadAndCompile(vertexShaderFile, ShaderType.Vertex) && LoadAndCompile(pixelShaderFile, ShaderType.Pixel) && Link())
+		{
+			Bind();
+
+			//Reset textures
+			/*foreach (Tuple!(string,Texture) pair; m_textures)
+			{
+				GLint loc = glGetUniformLocation(m_program, pair[0].toStringZ);
+				GLint tu = cast(GLint)pair[1].
+			}*/
+			/*for (std::map<std::string, std::pair<size_t, TexturePtr> >::iterator iter = m_textures.begin(); iter != m_textures.end(); ++iter)
+			{
+				GLint loc = glGetUniformLocation(m_program, iter->first.c_str());
+				GLint tu = (GLint)iter->second.first;
+				HR(glUniform1i(loc, tu));
+			}*/
+			
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 public:
 	void Bind()
 	{
@@ -149,27 +178,6 @@ public:
 		{
 			s_currentShader = m_program;
 			glUseProgram(m_program);
-		}
-	}
-
-	bool Load(string vertexShaderFile, string pixelShaderFile)
-	{
-		if (LoadAndCompile(vertexShaderFile, ShaderType.Vertex) && LoadAndCompile(pixelShaderFile, ShaderType.Pixel) && Link())
-		{
-			Bind();
-			//Reset textures
-			/*for (std::map<std::string, std::pair<size_t, TexturePtr> >::iterator iter = m_textures.begin(); iter != m_textures.end(); ++iter)
-			{
-				GLint loc = glGetUniformLocation(m_program, iter->first.c_str());
-				GLint tu = (GLint)iter->second.first;
-				HR(glUniform1i(loc, tu));
-			}*/
-
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 
@@ -193,11 +201,11 @@ public:
 		glUniform2fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
-	/*void Shader::SetParameter( string paramName, TexturePtr texture )
+	void SetParameter( string paramName, Texture texture )
 	{
 		Bind();
 
-		if (texture.valid())
+		/*if (texture.valid())
 		{
 			std::map<std::string, std::pair<size_t, TexturePtr> >::iterator find = m_textures.find(paramName);
 			size_t texUnit;
@@ -218,8 +226,8 @@ public:
 
 			HR(glActiveTexture(GL_TEXTURE0 + texUnit));
 			HR(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
-		}
-	}*/
+		}*/
+	}
 
 	void SetParameter( string paramName, GLuint value )
 	{
