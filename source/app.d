@@ -5,6 +5,7 @@ import derelict.glfw3.glfw3;
 
 import Mesh;
 import Camera;
+import Shader;
 
 import std.c.stdio : fputs, fputc, stderr;
 
@@ -45,6 +46,8 @@ void main()
 
 	Mesh mesh = Mesh.Mesh.CreatePlane(10.0f, 10.0f);
 	Camera camera = new Camera(640, 480);
+	Shader shader = new Shader("data/flat.glsl");
+	shader.Bind();
 
 	while (!glfwWindowShouldClose(window))
 	{

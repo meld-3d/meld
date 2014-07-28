@@ -140,6 +140,20 @@ struct vec3
     }
 };
 
+//represents a 4D vector
+struct vec4
+{
+	float x, y, z, w;
+
+	this(float x, float y, float z, float w)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+	}
+};
+
 //represents a 4x4 matrix
 struct mat4
 {

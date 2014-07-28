@@ -1,30 +1,50 @@
 import derelict.opengl3.gl3;
 import std.string;
+import std.file;
+import std.stdio;
+import std.ascii : newline;
+import Maths;
 
 class Shader
 {
 private:
 	enum ShaderType
 	{
+		None,
 		Vertex,
 		Pixel
 	}
 
-	Gluint m_program, m_pixelShader = 0, m_vertexShader = 0;
+	GLuint m_program, m_pixelShader = 0, m_vertexShader = 0;
+	static GLuint s_currentShader = 0;
 
 public:
-	this(string vertexShaderFile, string pixelShaderFile)
+	this(string glslFile)
 	{
+		auto file = File(glslFile);
+
+		ShaderType mode = ShaderType.None;
+		char[] vertexContents, pixelContents;
+
+		foreach (char[] line; file.byLine())
+		{
+			if (line.startsWith("#pragma vertex"))
+				mode = ShaderType.Vertex;
+			else if (line.startsWith("#pragma fragment"))
+				mode = ShaderType.Pixel;
+			else if (mode == ShaderType.Vertex)
+				vertexContents ~= line ~ newline;
+			else if (mode == ShaderType.Pixel)
+				pixelContents ~= line ~ newline;
+		}
+
  		m_program = glCreateProgram();
+		Load(cast(string)vertexContents, cast(string)pixelContents);
 	}
 
 private:
-	bool LoadAndCompile( const char* shaderFile, ShaderType shaderType )
+	bool LoadAndCompile( string shaderSource, ShaderType shaderType )
 	{
-		//Open the file
-		std::string shaderSource = LoadFile(shaderFile);
-		const char* source = shaderSource.c_str();
-
 		//Create and load the shader
 		GLuint shader = 0;
 		switch (shaderType)
@@ -32,23 +52,22 @@ private:
 		default:
 		case ShaderType.Vertex:
 			if (!m_vertexShader)
-			{
 				m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-			}
+
 			shader = m_vertexShader;
 			break;
 		case ShaderType.Pixel:
 			if (!m_pixelShader)
-			{
 				m_pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
-			}
+
 			shader = m_pixelShader;
 			break;
 		}
 
 		//Attach source and compile
-		int len = shaderSource.length();
-		glShaderSource(shader, 1, (const GLchar**)&source, &len);
+		int len = cast(int)shaderSource.length;
+		const char* source = shaderSource.toStringz();
+		glShaderSource(shader, 1, cast(const GLchar**)&source, &len);
 		glCompileShader(shader);
 
 		//Did we compile ok?
@@ -66,10 +85,10 @@ private:
 		}
 		else
 		{
-			PrintError("Shader Compilation Failed!");
-			PrintError(shaderFile);
+			writeln("Shader Compilation Failed!");
+			writeln(shaderSource);
 			PrintLog(shader);
-	        throw new std::runtime_error("Shader compilation failed");
+	        throw new Exception("Shader compilation failed");
 		}
 	}
 
@@ -77,16 +96,14 @@ private:
 	{
 		GLint logLength;
 		GLsizei actualLogLength = 0;
-		HR(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength));
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
 		if (logLength > 1)
 		{
-			PrintError("Compile Log:");
-			GLchar* compilerLog = new GLchar[logLength];
-			glGetShaderInfoLog(shader, logLength, &actualLogLength, compilerLog);
+			writeln("Compile Log:");
+			GLchar[] compilerLog = new GLchar[logLength];
+			glGetShaderInfoLog(shader, logLength, &actualLogLength, cast(char*)compilerLog);
 
-			PrintError(compilerLog);
-
-			delete[] compilerLog;
+			writeln(compilerLog);
 		}
 	}
 
@@ -97,12 +114,12 @@ private:
 	    glGetShaderiv(program, GL_INFO_LOG_LENGTH, &logLength);
 	    if (logLength > 0)
 	    {
-	        PrintError("Link Log:");
-	        GLchar* compilerLog = new GLchar[logLength];
-	        HR(glGetProgramInfoLog(program, logLength, &actualLogLength, compilerLog));
+	        writeln("Link Log:");
+	        GLchar[] compilerLog = new GLchar[logLength];
+	        glGetProgramInfoLog(program, logLength, &actualLogLength, cast(char*)compilerLog);
 	        
-	        PrintError(compilerLog);
-	        delete[] compilerLog;
+	        writeln(compilerLog);
+	        delete compilerLog;
 	    }
 	}
 
@@ -119,7 +136,7 @@ private:
 		}
 		else
 		{
-			PrintError("Failed to link shader!");
+			writeln("Failed to link shader!");
 			PrintProgramLog(m_program);
 			return false;
 		}
@@ -135,9 +152,9 @@ public:
 		}
 	}
 
-	bool Load()
+	bool Load(string vertexShaderFile, string pixelShaderFile)
 	{
-		if (LoadAndCompile(m_vertexShaderFile, ShaderType.Vertex) && LoadAndCompile(m_pixelShaderFile, ShaderType.Pixel) && Link())
+		if (LoadAndCompile(vertexShaderFile, ShaderType.Vertex) && LoadAndCompile(pixelShaderFile, ShaderType.Pixel) && Link())
 		{
 			Bind();
 			//Reset textures
@@ -158,22 +175,22 @@ public:
 
 	void SetParameter( string paramName, ref mat4 matrix )
 	{
-		glUniformMatrix4fv(glGetUniformLocation(m_program, paramName), 1, GL_FALSE, glm::value_ptr(matrix));
+		glUniformMatrix4fv(glGetUniformLocation(m_program, paramName.toStringz), 1, GL_FALSE, cast(float*)&matrix);
 	}
 
 	void SetParameter( string paramName, ref vec4 vector )
 	{
-		glUniform4fv(glGetUniformLocation(m_program, paramName), 1, glm::value_ptr(vector));
+		glUniform4fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
 	void SetParameter( string paramName, ref vec3 vector )
 	{
-		glUniform3fv(glGetUniformLocation(m_program, paramName), 1, glm::value_ptr(vector));
+		glUniform3fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
 	void SetParameter( string paramName, ref vec2 vector )
 	{
-		glUniform2fv(glGetUniformLocation(m_program, paramName), 1, glm::value_ptr(vector));
+		glUniform2fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
 	/*void Shader::SetParameter( string paramName, TexturePtr texture )
@@ -206,12 +223,12 @@ public:
 
 	void SetParameter( string paramName, GLuint value )
 	{
-		glUniform1i(glGetUniformLocation(m_program, paramName), value);
+		glUniform1i(glGetUniformLocation(m_program, paramName.toStringz), value);
 	}
 
 	void SetParameter( string paramName, float value )
 	{
-		glUniform1f(glGetUniformLocation(m_program, paramName), value);
+		glUniform1f(glGetUniformLocation(m_program, paramName.toStringz), value);
 	}
 }
 
