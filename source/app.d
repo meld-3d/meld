@@ -47,6 +47,7 @@ void main()
 	Mesh mesh = Mesh.Mesh.CreatePlane(10.0f, 10.0f);
 	Camera camera = new Camera(640, 480);
 	Shader shader = new Shader("data/flat.glsl");
+	shader.SetParameter("Texture", new Texture("data/background.jpg"));
 	shader.Bind();
 
 	while (!glfwWindowShouldClose(window))

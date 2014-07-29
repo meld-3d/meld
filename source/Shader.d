@@ -5,6 +5,7 @@ import std.stdio;
 import std.ascii : newline;
 import Maths;
 import Texture;
+import std.typecons;
 
 class Shader
 {
@@ -16,8 +17,20 @@ private:
 		Pixel
 	}
 
+	struct TextureUnit
+	{
+		this(GLint textureUnit, Texture texture)
+		{
+			this.textureUnit = textureUnit;
+			this.texture = texture;
+		}
+
+		GLint textureUnit;
+		Texture texture;
+	};
+
 	GLuint m_program, m_pixelShader = 0, m_vertexShader = 0;
-	Texture[string] m_textures;
+	static TextureUnit[string] m_textures;
 	static GLuint s_currentShader = 0;
 
 public:
@@ -151,17 +164,12 @@ private:
 			Bind();
 
 			//Reset textures
-			/*foreach (Tuple!(string,Texture) pair; m_textures)
+			foreach (string paramName; m_textures.byKey)
 			{
-				GLint loc = glGetUniformLocation(m_program, pair[0].toStringZ);
-				GLint tu = cast(GLint)pair[1].
-			}*/
-			/*for (std::map<std::string, std::pair<size_t, TexturePtr> >::iterator iter = m_textures.begin(); iter != m_textures.end(); ++iter)
-			{
-				GLint loc = glGetUniformLocation(m_program, iter->first.c_str());
-				GLint tu = (GLint)iter->second.first;
-				HR(glUniform1i(loc, tu));
-			}*/
+				GLint loc = glGetUniformLocation(m_program, paramName.toStringz);
+				GLint tu = m_textures[paramName].textureUnit;
+				glUniform1i(loc, tu);
+			}
 			
 			return true;
 		}
@@ -205,28 +213,24 @@ public:
 	{
 		Bind();
 
-		/*if (texture.valid())
+		if (texture.m_texture != 0)
 		{
-			std::map<std::string, std::pair<size_t, TexturePtr> >::iterator find = m_textures.find(paramName);
-			size_t texUnit;
-			if (find == m_textures.end())
-			{
-				texUnit = m_textures.size()*2;
-				m_textures.insert(std::make_pair(paramName,std::make_pair(texUnit, texture)));
+			TextureUnit* textureParam = paramName in m_textures;
 
-				GLint loc = glGetUniformLocation(m_program, paramName);
-				GLint tu = texUnit;
-				HR(glUniform1i(loc, tu));
+			if (textureParam == null)
+			{
+				m_textures[paramName] = TextureUnit(cast(GLint)m_textures.length * 2, texture);
+				textureParam = &m_textures[paramName];
+
+				GLint loc = glGetUniformLocation(m_program, paramName.toStringz);
+				glUniform1i(loc, textureParam.textureUnit);
 			}
 			else
-			{
-				texUnit = find->second.first;
-				find->second.second = texture;
-			}
+				textureParam.texture = texture;
 
-			HR(glActiveTexture(GL_TEXTURE0 + texUnit));
-			HR(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
-		}*/
+			glActiveTexture(GL_TEXTURE0 + textureParam.textureUnit);
+			glBindTexture(GL_TEXTURE_2D, textureParam.texture.m_texture);
+		}
 	}
 
 	void SetParameter( string paramName, GLuint value )
