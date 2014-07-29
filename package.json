@@ -6,5 +6,7 @@
 	"dependencies": {
 		"derelict-gl3": "~master",
 		"derelict-glfw3": "~master"
-	}
+	},
+	"preBuildCommands": ["pwd", "gcc -c -o .dub/build/stb_image.o source/stb_image.c"],
+	"lflags": [".dub/build/stb_image.o"]
 }

@@ -1,5 +1,6 @@
 import derelict.opengl3.gl3;
 import std.string;
+import stb_image;
 
 class Texture
 {
@@ -17,7 +18,9 @@ class Texture
 
 	this(string imageFile)
 	{
-		//TODO!
+		int w, h, n;
+		stbi_uc* data = stbi_load(imageFile.toStringz, &w, &h, &n, 4);
+		this(w, h, data);
 	}
 
 	~this()
