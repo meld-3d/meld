@@ -6,6 +6,7 @@ import std.ascii : newline;
 import Maths;
 import Texture;
 import std.typecons;
+import std.conv;
 
 class Shader
 {
@@ -189,22 +190,22 @@ public:
 		}
 	}
 
-	void SetParameter( string paramName, ref mat4 matrix )
+	void SetParameter( string paramName, mat4 matrix )
 	{
-		glUniformMatrix4fv(glGetUniformLocation(m_program, paramName.toStringz), 1, GL_FALSE, cast(float*)&matrix);
+		glUniformMatrix4fv(glGetUniformLocation(m_program, paramName.toStringz), 1, GL_TRUE, cast(float*)&matrix);
 	}
 
-	void SetParameter( string paramName, ref vec4 vector )
+	void SetParameter( string paramName, vec4 vector )
 	{
 		glUniform4fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
-	void SetParameter( string paramName, ref vec3 vector )
+	void SetParameter( string paramName, vec3 vector )
 	{
 		glUniform3fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}
 
-	void SetParameter( string paramName, ref vec2 vector )
+	void SetParameter( string paramName, vec2 vector )
 	{
 		glUniform2fv(glGetUniformLocation(m_program, paramName.toStringz), 1, cast(float*)&vector);
 	}

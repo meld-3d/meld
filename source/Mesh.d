@@ -186,7 +186,7 @@ public:
 		return sphere;
 	}
 	
-	Mesh CreateCone( int segments )
+	static Mesh CreateCone( int segments )
 	{
 		Vertex[] vertices = new Vertex[segments + 2];
 		Vertex top = Vertex
@@ -234,7 +234,7 @@ public:
 		return cone;
 	}
 
-	Mesh CreateCube()
+	static Mesh CreateCube()
 	{
 		const float hw = 1.0f;
 		const float hy = 1.0f;
@@ -303,7 +303,7 @@ public:
 		return new Mesh(verts, 24, indices, 36, GL_TRIANGLES);
 	}
 	
-	Mesh CreateCylinder(int segments)
+	static Mesh CreateCylinder(int segments)
 	{
 		int numVerts = (segments * 4) + 2;
 		int numIndices = segments * 12;

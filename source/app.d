@@ -8,6 +8,7 @@ import Camera;
 import Shader;
 
 import std.c.stdio : fputs, fputc, stderr;
+import Maths;
 
 extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
   fputs(description, stderr);
@@ -44,16 +45,38 @@ void main()
 	writefln("Version:  %s",   to!string(glGetString(GL_VERSION)));
 	writefln("GLSL:     %s\n", to!string(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-	Mesh mesh = Mesh.Mesh.CreatePlane(10.0f, 10.0f);
+	Mesh mesh = Mesh.Mesh.CreateCube();
 	Camera camera = new Camera(640, 480);
-	Shader shader = new Shader("data/flat.glsl");
-	shader.SetParameter("Texture", new Texture("data/background.jpg"));
+	Shader shader = new Shader("data/specular.glsl");
+	shader.SetParameter("world", mat4.identity);
 	shader.Bind();
+
+	//Enable culling and depth
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0, 0.2, 0.8, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera.Move(0.01f, 0.0f);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera.Move(-0.01f, 0.0f);
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera.Move(0.0f, 0.01f);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera.Move(0.0f, -0.01f);
+
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+			camera.Look(1.0f, 0.0f);
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+			camera.Look(-0.1f, 0.0f);
+
+
+		shader.SetParameter("viewProj", camera.viewProj);
 
 		mesh.Draw();
 

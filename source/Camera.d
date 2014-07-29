@@ -4,8 +4,8 @@ import std.math;
 class Camera
 {
 private:
-	vec2 m_rot;
-	vec3 m_pos, m_fwd = vec3(0.0f, 0.0f, 1.0f);
+	vec2 m_rot = vec2(0.0f, 0.0f);
+	vec3 m_pos = vec3(0.0f, -2.0f, 10.0f), m_fwd = vec3(0.0f, 0.0f, 1.0f);
 	mat4 m_viewProj, m_proj;
 	bool m_dirty = true;
 
@@ -16,13 +16,13 @@ public:
 		if (m_dirty)
 		{
 			mat4 view = 
-				mat4.axisangle(vec3(1.0f, 0.0f, 0.0f), m_rot.x) * 
+				//mat4.axisangle(vec3(1.0f, 0.0f, 0.0f), m_rot.x) * 
 				mat4.axisangle(vec3(0.0f, 1.0f, 0.0f), m_rot.y) *
 				mat4.translate(m_pos);
 				
-			m_fwd = vec3(sin(m_rot.x) * cos(m_rot.y), sin(m_rot.y), cos(m_rot.x) * cos(m_rot.y));
+			//m_fwd = vec3(sin(m_rot.x) * cos(m_rot.y), sin(m_rot.y), cos(m_rot.x) * cos(m_rot.y));
 
-			m_viewProj = m_proj * view;
+			m_viewProj = view * mat4.proj(deg2rad(45.0f), 640.0f/480.0f, 0.1f, 5000.0f);
 			m_dirty = false;
 		}
 
