@@ -29,6 +29,12 @@ struct vec2
         this.y = y;
     }
     
+	vec2 opUnary(string op)()
+	{
+		static if (op == "-")
+			return vec2(-x, -y);
+	}
+
     //multiplies the vector by a scalar, returning the result.
     vec2 opBinary(string op)(immutable float scalar)
     {
@@ -85,12 +91,17 @@ struct vec3
         this.z = z;
     }
     
+	vec3 opUnary(string op)()
+	{
+		static if (op == "-")
+			return vec3(-x, -y, -z);
+	}
+
 	//multiplies the vector by a scalar, returning the result.
     vec3 opBinary(string op)(immutable float scalar)
     {
         static if (op == "*")
             return vec3(x * scalar, y * scalar, z * scalar);
-        else static assert(0, "Op "~op~" not implemented");
     }
 	
     vec3 opBinary(string op)(immutable vec3 other)
@@ -99,7 +110,6 @@ struct vec3
             return vec3(x + other.x, y + other.y, z + other.z);
         else static if (op == "-")
             return vec3(x - other.x, y - other.y, z - other.z);
-        else static assert(0, "Operator "~op~" not implemented");
     }
     
 	//calculate the dot product with the other vector, returning the result.
@@ -133,10 +143,10 @@ struct vec3
     vec3 cross(immutable vec3 other)
     {
         return vec3(
-                    y*other.z - z*other.y,
-                    z*other.x - x*other.z,
-                    x*other.y - y*other.x
-                    );
+	        y*other.z - z*other.y,
+	        z*other.x - x*other.z,
+	        x*other.y - y*other.x
+        );
     }
 };
 
@@ -152,7 +162,12 @@ struct vec4
 		this.z = z;
 		this.w = w;
 	}
-};
+
+	vec3 opCast()
+	{
+		return vec3(x, y, z);
+	}
+}
 
 //represents a 4x4 matrix
 struct mat4
@@ -181,6 +196,19 @@ struct mat4
             return res;
         }
     }
+
+	vec4 opBinary(string op)(immutable vec4 other)
+	{
+		static if (op == "*")
+		{
+			return vec4(
+				other.x * rows[0] + other.y * rows[4] + other.z * rows[8] + other.w * rows[12],
+				other.x * rows[1] + other.y * rows[5] + other.z * rows[9] + other.w * rows[13],
+				other.x * rows[2] + other.y * rows[6] + other.z * rows[10] + other.w * rows[14],
+				other.x * rows[3] + other.y * rows[7] + other.z * rows[11] + other.w * rows[15]
+			);
+		}
+	}
     
 	//produces a axis angle matrix. This will produce a rotation in radians about the normalized axis.
     static mat4 axisangle(immutable vec3 axis, float angle)

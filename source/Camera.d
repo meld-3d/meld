@@ -1,5 +1,7 @@
 import Maths;
 import std.math;
+import std.stdio;
+import std.conv;
 
 class Camera
 {
@@ -16,11 +18,13 @@ public:
 		if (m_dirty)
 		{
 			mat4 view = 
-				//mat4.axisangle(vec3(1.0f, 0.0f, 0.0f), m_rot.x) * 
-				mat4.axisangle(vec3(0.0f, 1.0f, 0.0f), m_rot.y) *
-				mat4.translate(m_pos);
+				mat4.translate(-m_pos) *
+				mat4.axisangle(vec3(0.0f, 1.0f, 0.0f), -m_rot.y) *
+				mat4.axisangle(vec3(1.0f, 0.0f, 0.0f), -m_rot.x); 
 				
-			//m_fwd = vec3(sin(m_rot.x) * cos(m_rot.y), sin(m_rot.y), cos(m_rot.x) * cos(m_rot.y));
+			//m_fwd = cast(vec3)(view * vec4(0.0f, 0.0f, 1.0f, 1.0f)) - m_pos;
+			//writeln(to!string(m_fwd));
+			//m_fwd = vec3(0.0f, 0.0f, 1.0f) * view;//vec3(sin(m_rot.x) * cos(m_rot.y), sin(m_rot.y), cos(m_rot.x) * cos(m_rot.y));
 
 			m_viewProj = view * mat4.proj(deg2rad(45.0f), 640.0f/480.0f, 0.1f, 5000.0f);
 			m_dirty = false;

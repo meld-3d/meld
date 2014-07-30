@@ -13,7 +13,7 @@ uniform mat4 viewProj;
 void main(void)
 {
 	Normal = inNormal;
-	gl_Position = viewProj * vec4(inVertex, 1.0);
+	gl_Position = viewProj * world * vec4(inVertex, 1.0);
 }
 
 #pragma fragment

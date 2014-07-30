@@ -71,13 +71,20 @@ void main()
 			camera.Move(0.0f, -0.01f);
 
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-			camera.Look(1.0f, 0.0f);
+			camera.Look(0.1f, 0.0f);
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 			camera.Look(-0.1f, 0.0f);
-
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+			camera.Look(0.0f, 0.1f);
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+			camera.Look(0.0f, -0.1f);
 
 		shader.SetParameter("viewProj", camera.viewProj);
 
+		shader.SetParameter("world", mat4.translate(vec3(2.0f, 0.0f, 0.0f)));
+		mesh.Draw();
+
+		shader.SetParameter("world", mat4.translate(vec3(-2.0f, 0.0f, 0.0f)));
 		mesh.Draw();
 
 		glfwSwapBuffers(window);
