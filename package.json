@@ -3,6 +3,7 @@
 	"description": "A tiny game engine built on top of OpenGL and Derelict",
 	"copyright": "Copyright © 2014 Alex Parker",
 	"authors": ["Alex Parker"],
+	"license": "BSL-1.0",
 	"dependencies": {
 		"derelict-gl3": "~master",
 		"derelict-glfw3": "~master"
