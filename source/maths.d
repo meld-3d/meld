@@ -4,6 +4,7 @@
  * This file contains vec3, mat4 data structures and associated operations.
  **/
 
+module meld.maths;
 import std.math;
 
 //converts radians to degrees

@@ -1,3 +1,4 @@
+module meld.material;
 /*module three.d;
 
 Material::Material(ShaderPtr& shader)

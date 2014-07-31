@@ -1,4 +1,6 @@
-import Maths;
+module meld.camera;
+
+import meld.maths;
 import std.math;
 import std.stdio;
 import std.conv;

@@ -1,10 +1,12 @@
+module meld.shader;
+
 import derelict.opengl3.gl3;
 import std.string;
 import std.file;
 import std.stdio;
 import std.ascii : newline;
-import Maths;
-import Texture;
+import meld.maths;
+import meld.texture;
 import std.typecons;
 import std.conv;
 

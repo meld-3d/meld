@@ -3,12 +3,9 @@ import std.conv;
 import derelict.opengl3.gl3;
 import derelict.glfw3.glfw3;
 
-import Mesh;
-import Camera;
-import Shader;
+import meld;
 
 import std.c.stdio : fputs, fputc, stderr;
-import Maths;
 
 extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
   fputs(description, stderr);
@@ -45,7 +42,7 @@ void main()
 	writefln("Version:  %s",   to!string(glGetString(GL_VERSION)));
 	writefln("GLSL:     %s\n", to!string(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-	Mesh mesh = Mesh.Mesh.CreateCube();
+	Mesh mesh = Mesh.CreateCube();
 	Camera camera = new Camera(640, 480);
 	Shader shader = new Shader("data/specular.glsl");
 	shader.SetParameter("world", mat4.identity);

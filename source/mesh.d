@@ -1,3 +1,5 @@
+module meld.mesh;
+
 import derelict.opengl3.gl3;
 import std.stdio;
 import std.conv;
