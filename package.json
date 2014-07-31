@@ -1,6 +1,6 @@
 {
-	"name": "threed",
-	"description": "A D ThreeD graphics library built on top of glfw3 and Derelict",
+	"name": "meld",
+	"description": "A tiny game engine built on top of OpenGL and Derelict",
 	"copyright": "Copyright © 2014 Alex Parker",
 	"authors": ["Alex Parker"],
 	"dependencies": {

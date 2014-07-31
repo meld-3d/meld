@@ -62,13 +62,13 @@ void main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			camera.Move(0.01f, 0.0f);
+			camera.Move(0.1f, 0.0f);
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			camera.Move(-0.01f, 0.0f);
+			camera.Move(-0.1f, 0.0f);
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			camera.Move(0.0f, 0.01f);
+			camera.Move(0.0f, 0.1f);
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			camera.Move(0.0f, -0.01f);
+			camera.Move(0.0f, -0.1f);
 
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 			camera.Look(0.1f, 0.0f);
