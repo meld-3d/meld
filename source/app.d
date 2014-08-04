@@ -2,6 +2,7 @@ import std.stdio;
 import std.conv;
 import derelict.opengl3.gl3;
 import derelict.glfw3.glfw3;
+import core.thread;
 
 import meld;
 
@@ -53,39 +54,60 @@ void main()
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 
+	double currentTime = glfwGetTime();
+	double accumulator = 0.0;
+	double dt = 1.0 / 60.0;
+
 	while (!glfwWindowShouldClose(window))
 	{
+		double newTime = glfwGetTime();
+		double frameTime = newTime - currentTime;
+		currentTime = newTime;
+
+		accumulator += frameTime;
+
+		while (accumulator >= dt)
+		{
+			writefln("Ding: %f", dt);
+
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				camera.Move(dt, 0.0f);
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				camera.Move(-dt, 0.0f);
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				camera.Move(0.0f, dt);
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				camera.Move(0.0f, -dt);
+
+			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+				camera.Look(dt*2.0, 0.0f);
+			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+				camera.Look(-dt*2.0, 0.0f);
+			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+				camera.Look(0.0f, dt);
+			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+				camera.Look(0.0f, -dt);
+
+			accumulator -= dt;
+		}
+
 		glClearColor(0.0, 0.2, 0.8, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			camera.Move(0.1f, 0.0f);
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			camera.Move(-0.1f, 0.0f);
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			camera.Move(0.0f, 0.1f);
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			camera.Move(0.0f, -0.1f);
-
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-			camera.Look(0.1f, 0.0f);
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-			camera.Look(-0.1f, 0.0f);
-		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-			camera.Look(0.0f, 0.1f);
-		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-			camera.Look(0.0f, -0.1f);
-
 		shader.SetParameter("viewProj", camera.viewProj);
 
-		shader.SetParameter("world", mat4.translate(vec3(2.0f, 0.0f, 0.0f)));
+		shader.SetParameter("world", mat4.translate(vec3(2.0f, 0.0f, 20.0f)));
 		mesh.Draw();
 
-		shader.SetParameter("world", mat4.translate(vec3(-2.0f, 0.0f, 0.0f)));
+		shader.SetParameter("world", mat4.translate(vec3(-2.0f, 0.0f, 20.0f)));
 		mesh.Draw();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		double timeLeft = dt - frameTime;
+		if (timeLeft > 0.0)
+			Thread.sleep(dur!("msecs")( cast(long)(timeLeft * 1000.0) ));
 	}
 
 	glfwDestroyWindow(window);
