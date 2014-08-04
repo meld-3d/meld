@@ -8,6 +8,21 @@
 		"derelict-gl3": "~master",
 		"derelict-glfw3": "~master"
 	},
-	"preBuildCommands": ["pwd", "gcc -c -o .dub/build/stb_image.o source/stb_image.c"],
-	"lflags": [".dub/build/stb_image.o"]
+	"targetType": "executable",
+	"configurations": [
+		{
+			"name": "windows-desktop",
+			"platforms": ["windows"],
+			"preBuildCommands": [
+				"dmc -c source/stb_image.c -o.dub/build/stb_image.obj",
+				"lib -c .dub/build/stb_image.lib .dub/build/stb_image.obj"
+			],
+			"libs": [".dub/build/stb_image"]
+		},
+		{
+			"name": "posix",
+			"preBuildCommands": ["gcc -c -o .dub/build/stb_image.o source/stb_image.c"],
+			"lflags": [".dub/build/stb_image.o"]
+		}
+	],
 }

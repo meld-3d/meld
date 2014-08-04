@@ -2,3 +2,4 @@ threed
 .dub/**
 package.userprefs
 meld
+meld.exe

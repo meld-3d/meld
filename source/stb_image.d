@@ -1,6 +1,5 @@
 ﻿// stb_image d header file
 module stb_image;
-pragma (lib, "/Users/alex/Code/dlang/threed/source/stb_image.a");
 
 import core.stdc.stdio;
 
