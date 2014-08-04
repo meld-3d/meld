@@ -25,4 +25,9 @@
 			"lflags": [".dub/build/stb_image.o"]
 		}
 	],
+	"buildTypes": {
+		"release": {
+			"lflags-windows": ["/exet:nt/su:windows"]
+		}
+	}
 }
