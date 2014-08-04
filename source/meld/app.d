@@ -1,47 +1,8 @@
-import std.stdio;
-import std.conv;
-import derelict.opengl3.gl3;
-import derelict.glfw3.glfw3;
-import core.thread;
-
-import meld;
-
-import std.c.stdio : fputs, fputc, stderr;
-
-extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
-  fputs(description, stderr);
-  fputc('\n', stderr);
-}
+/*import meld;
 
 void main()
 {
-	DerelictGL3.load();
-	DerelictGLFW3.load();
-
-	glfwSetErrorCallback(&glfwPrintError);
-	if (!glfwInit())
-	{
-		glfwTerminate();
-		throw new Exception("Failed to create gl context");
-	}
-
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", null, null);
-
-	glfwMakeContextCurrent(window);
-
-	DerelictGL3.reload();
-
-	writefln("Vendor:   %s",   to!string(glGetString(GL_VENDOR)));
-	writefln("Renderer: %s",   to!string(glGetString(GL_RENDERER)));
-	writefln("Version:  %s",   to!string(glGetString(GL_VERSION)));
-	writefln("GLSL:     %s\n", to!string(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+	Window window = new Window(640, 480, "Hello, world!");
 
 	Mesh mesh = Mesh.CreateCube();
 	Camera camera = new Camera(640, 480);
@@ -49,18 +10,13 @@ void main()
 	shader.SetParameter("world", mat4.identity);
 	shader.Bind();
 
-	//Enable culling and depth
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glEnable(GL_DEPTH_TEST);
-
-	double currentTime = glfwGetTime();
+	double currentTime = window.Time();
 	double accumulator = 0.0;
 	double dt = 1.0 / 60.0;
 
-	while (!glfwWindowShouldClose(window))
+	while (!window.IsRunning())
 	{
-		double newTime = glfwGetTime();
+		double newTime = window.Time();
 		double frameTime = newTime - currentTime;
 		currentTime = newTime;
 
@@ -102,14 +58,13 @@ void main()
 		shader.SetParameter("world", mat4.translate(vec3(-2.0f, 0.0f, 20.0f)));
 		mesh.Draw();
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		window.Swap();
 
 		double timeLeft = dt - frameTime;
 		if (timeLeft > 0.0)
 			Thread.sleep(dur!("msecs")( cast(long)(timeLeft * 1000.0) ));
 	}
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	
 }
+*/

@@ -6,3 +6,4 @@ public import meld.maths;
 public import meld.mesh;
 public import meld.shader;
 public import meld.texture;
+public import meld.window;
