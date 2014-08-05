@@ -17,8 +17,8 @@ extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
 
 class Window
 {
-private:
-	GLFWwindow* window;
+package:
+	static GLFWwindow* window;
 
 public:
 	this(string name, int width, int height)
