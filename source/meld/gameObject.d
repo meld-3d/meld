@@ -15,9 +15,9 @@ private:
 	immutable int instanceID;
 
 public:
-	T Add(T)(...)
+	T Add(T,A...)(A a)
 	{
-		Component!T component = null;//new T(...);
+		T component = new T(a);
 		T.componentList ~= component;
 		T.componentMap[instanceID] = component;
 		return component;
