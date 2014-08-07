@@ -1,4 +1,23 @@
 module meld.material;
+
+import meld;
+
+class Material
+{
+private:
+	Shader m_shader;
+
+public:
+	this(Shader shader)
+	{
+		m_shader = shader;
+	}
+
+	bool Bind( mat4 world )
+	{
+		return false;
+	}
+}
 /*module three.d;
 
 Material::Material(ShaderPtr& shader)

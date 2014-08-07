@@ -18,7 +18,7 @@ extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
 class Window
 {
 package:
-	static GLFWwindow* window;
+	static GLFWwindow* m_window;
 
 public:
 	this(string name, int width, int height)
@@ -40,9 +40,9 @@ public:
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-		window = glfwCreateWindow(width, height, name.toStringz, null, null);
+		m_window = glfwCreateWindow(width, height, name.toStringz, null, null);
 
-		glfwMakeContextCurrent(window);
+		glfwMakeContextCurrent(m_window);
 
 		DerelictGL3.reload();
 
@@ -59,9 +59,9 @@ public:
 
 	bool IsRunning()
 	{
-		if (glfwWindowShouldClose(window))
+		if (glfwWindowShouldClose(m_window))
 		{
-			glfwDestroyWindow(window);
+			glfwDestroyWindow(m_window);
 			glfwTerminate();
 			return false;
 		}
@@ -71,7 +71,7 @@ public:
 
 	void Swap()
 	{
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(m_window);
 		glfwPollEvents();
 	}
 

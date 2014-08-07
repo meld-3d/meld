@@ -45,7 +45,7 @@ public:
 		if (side != 0.0f || forward != 0.0f)
 		{
 			m_pos = m_pos + (m_fwd * forward);
-			vec3 sideV = m_fwd.cross(vec3(0.0f, 1.0f, 0.0f));
+			vec3 sideV = vec3.cross(m_fwd, vec3(0.0f, 1.0f, 0.0f));
 			m_pos = m_pos + (sideV * side);
 
 			m_dirty = true;

@@ -83,6 +83,11 @@ struct vec2
 //represents a 3D vector
 struct vec3
 {
+    static immutable vec3 zero = vec3(0.0f, 0.0f, 0.0f);
+    static immutable vec3 forward = vec3(0.0f, 0.0f, 1.0f);
+    static immutable vec3 right = vec3(1.0f, 0.0f, 0.0f);
+    static immutable vec3 up = vec3(0.0f, 1.0f, 0.0f);
+
     float x, y, z;
     
     this(float x, float y, float z)
@@ -94,59 +99,52 @@ struct vec3
     
 	vec3 opUnary(string op)()
 	{
-		static if (op == "-")
-			return vec3(-x, -y, -z);
+        return mixin("vec3("~op~"x, "~op~"y, "~op~"z)");
 	}
 
 	//multiplies the vector by a scalar, returning the result.
     vec3 opBinary(string op)(immutable float scalar)
     {
-        static if (op == "*")
-            return vec3(x * scalar, y * scalar, z * scalar);
+        return mixin("vec3(x "~op~" scalar, y "~op~" scalar, z "~op~" scalar)");
     }
 	
     vec3 opBinary(string op)(immutable vec3 other)
     {
-        static if (op == "+")
-            return vec3(x + other.x, y + other.y, z + other.z);
-        else static if (op == "-")
-            return vec3(x - other.x, y - other.y, z - other.z);
+        return mixin("vec3(x "~op~" other.x, y "~op~" other.y, z "~op~" other.z)");
     }
     
 	//calculate the dot product with the other vector, returning the result.
-    float dot(immutable vec3 other)
+    static float dot(immutable vec3 a, immutable vec3 b)
     {
-        return x*other.x + y*other.y + z*other.z;
+        return a.x*b.x + a.y*b.y + b.z*b.z;
     }
     
 	//calculates the squared length of the current vector.
-    float lengthSq()
+    @property float lengthSq()
     {
-        return dot(this);
+        return vec3.dot(this, this);
     }
     
 	//calculates the length of the vector.
-    float length()
+    @property float length()
     {
         return sqrt(lengthSq());
     }
     
-	//normalizes the current vector.
-    void normalize()
+	//normalizes a copy of the vector
+    vec3 normalized()
     {
         float len = length();
-        x /= len;
-        y /= len;
-        z /= len;
+        return vec3(x / len, y / len, z / len);
     }
-    
-	//calculates the cross product with the other vector, returning the result.
-    vec3 cross(immutable vec3 other)
+
+    //calculates the cross product with the other vector, returning the result.
+    static vec3 cross(immutable vec3 a, immutable vec3 b)
     {
         return vec3(
-	        y*other.z - z*other.y,
-	        z*other.x - x*other.z,
-	        x*other.y - y*other.x
+	        a.y*b.z - a.z*b.y,
+	        a.z*b.x - a.x*b.z,
+	        a.x*b.y - a.y*b.x
         );
     }
 };
@@ -175,7 +173,7 @@ struct mat4
 {
     float rows[16];
 
-    this(float rows[16])
+    this(immutable float rows[16])
     {
         this.rows = rows;
     }
@@ -210,7 +208,27 @@ struct mat4
 			);
 		}
 	}
+
+    vec3 opBinary(string op)(immutable vec3 other)
+    {
+        static if (op == "*")
+        {
+            return vec3(
+                other.x * rows[0] + other.y * rows[4] + other.z * rows[8],
+                other.x * rows[1] + other.y * rows[5] + other.z * rows[9],
+                other.x * rows[2] + other.y * rows[6] + other.z * rows[10]
+            );
+        }
+    }
     
+    //the identity matrix
+    static const mat4 identity = mat4([
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    ]);
+
 	//produces a axis angle matrix. This will produce a rotation in radians about the normalized axis.
     static mat4 axisangle(immutable vec3 axis, float angle)
     {
@@ -225,33 +243,26 @@ struct mat4
 		return mat;
     }
 
+    //produces a translation matrix
     static mat4 translate(immutable vec3 pos)
     {
-        return translate(pos.x, pos.y, pos.z);
-    }
-    
-	//produces a translation matrix
-    static mat4 translate(float x, float y, float z)
-    {
-        mat4 mat = mat4([
-            1.0f, 0.0f, 0.0f, x,
-            0.0f, 1.0f, 0.0f, y,
-            0.0f, 0.0f, 1.0f, z,
+        return mat4([
+            1.0f, 0.0f, 0.0f, pos.x,
+            0.0f, 1.0f, 0.0f, pos.y,
+            0.0f, 0.0f, 1.0f, pos.z,
             0.0f, 0.0f, 0.0f, 1.0f
         ]);
-		return mat;
     }
-    
-	//returns the identity matrix
-    static mat4 identity()
+
+    static mat4 basis(immutable vec3 pos, immutable vec3 forward, immutable vec3 up)
     {
-        mat4 mat = mat4([
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
+        vec3 right = vec3.cross(forward, up);
+        return mat4([
+            forward.x, up.x, right.x, pos.x,
+            forward.y, up.y, right.y, pos.y,
+            forward.z, up.z, right.z, pos.z,
+            0.0f,      0.0f, 0.0f,    1.0f
         ]);
-		return mat;
     }
     
 	//calculates a projection matrix from the field of view in radians,

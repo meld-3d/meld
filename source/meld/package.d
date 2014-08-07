@@ -8,3 +8,4 @@ public import meld.shader;
 public import meld.texture;
 public import meld.window;
 public import meld.input;
+public import meld.gameObject;

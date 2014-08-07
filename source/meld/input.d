@@ -146,6 +146,6 @@ class Input
 public:
 	static bool IsKeyDown(Keys key)
 	{
-		return glfwGetKey(Window.window, cast(int)key) == GLFW_PRESS;
+		return glfwGetKey(Window.m_window, cast(int)key) == GLFW_PRESS;
 	}
 }
