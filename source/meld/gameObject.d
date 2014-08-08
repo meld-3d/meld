@@ -12,8 +12,20 @@ private:
 	vec3 _position = vec3.zero, _forward = vec3.forward;
 
 public:
+	GameObject gameObject;
+	Transform parent;
+
 	@property mat4 localToWorld() 
 	{
+		if (_transformDirty)
+		{
+			if (parent is null)
+				_localToWorld = mat4.basis(_position, _forward, vec3.up);
+			else
+				_localToWorld = parent.localToWorld * mat4.basis(_position, _forward, vec3.up);
+		}
+
+		_transformDirty = false;
 		return _localToWorld; 
 	}
 	
@@ -45,39 +57,52 @@ public:
 
 	@property Transform transform()
 	{
-		return gameObject._transform;
+		return gameObject.m_transform;
 	}
 }
 
 class GameObject
 {
+private:
+	int m_maxInstanceID = 0;
 package:
-	immutable int _instanceID;
-	Transform _transform;
+	immutable int m_instanceID;
+	Transform m_transform;
 
 public:
+	@property Transform transform() { return m_transform; }
+
+	this(Transform parent = null)
+	{
+		m_transform = new Transform();
+		m_transform.gameObject = this;
+		m_transform.parent = parent;
+		m_instanceID = m_maxInstanceID++;
+	}
+
 	T Add(T,A...)(A a)
 	{
 		T component = new T(a);
+		component.gameObject = this;
 		T.componentList ~= component;
-		T.componentMap[_instanceID] = component;
+		T.componentMap[m_instanceID] = component;
 		return component;
 	}
 
 	void Remove(T)()
 	{
-		T* component = _instanceID in T.componentMap;
+		T* component = m_instanceID in T.componentMap;
 		if (component !is null)
 		{
 			int ind = countUntil(T.componentList, *component);
 			T.componentList = remove(T.componentList, ind);
-			T.componentMap.remove(_instanceID);
+			T.componentMap.remove(m_instanceID);
 		}
 	}
 
 	T* Get(T)()
 	{
-		return _instanceID in T.componentMap;
+		return m_instanceID in T.componentMap;
 	}
 
 	static T[] GetComponentList(T)()
@@ -89,14 +114,14 @@ public:
 class MeshRenderer : Component!MeshRenderer
 {
 private:
-	Mesh mesh;
-	Material material;
+	Mesh m_mesh;
+	Material m_material;
 
 public:
 	this(Mesh mesh, Material material)
 	{
-		this.mesh = mesh;
-		this.material = material;
+		this.m_mesh = mesh;
+		this.m_material = material;
 	}
 
 	static void Draw()
@@ -109,7 +134,7 @@ public:
 
 	void DrawInternal()
 	{
-		material.Bind(transform.localToWorld);
-
+		m_material.Bind(transform.localToWorld);
+		m_mesh.Draw();
 	}
 }
