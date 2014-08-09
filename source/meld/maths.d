@@ -22,6 +22,7 @@ float deg2rad(float deg)
 //represents a 2D vector
 struct vec2
 {
+    static immutable vec2 zero = vec2(0.0f, 0.0f);
     float x, y;
     
     this(float x, float y)

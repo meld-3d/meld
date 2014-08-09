@@ -4,6 +4,9 @@ import derelict.opengl3.gl3;
 import std.stdio;
 import std.conv;
 import std.math;
+import std.file;
+import std.range;
+import std.string;
 
 struct Vertex
 {
@@ -42,19 +45,19 @@ private:
 	}
 
 public:
-	this(ref Vertex[] verts, int numVerts, ref ushort[] indices, int numIndices, GLenum drawMode)
+	this(ref Vertex[] verts, ref ushort[] indices, GLenum drawMode)
 	{
 		//Create the vertex buffer
 		glGenBuffers(1, &m_vertexBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, Vertex.sizeof*numVerts, &verts[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Vertex.sizeof*verts.length, &verts[0], GL_STATIC_DRAW);
 		ErrCheck();
 
 		//Create the index buffer
 		glGenBuffers(1, &m_indexBuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ushort.sizeof*numIndices, &indices[0], GL_STATIC_DRAW);
-		m_numIndices = numIndices;
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ushort.sizeof*indices.length, &indices[0], GL_STATIC_DRAW);
+		m_numIndices = indices.length;
 		ErrCheck();
 
 		//Create the vertex layout
@@ -118,7 +121,7 @@ public:
 			0, 2, 3
 		];
 
-		return new Mesh(verts, 4, indices, 6, GL_TRIANGLES);
+		return new Mesh(verts, indices, GL_TRIANGLES);
 	}
 
 	static Mesh CreateSphere( int rings, int segments, bool flip )
@@ -181,7 +184,7 @@ public:
 			}
 		}
 		
-		Mesh sphere = new Mesh(vertices, numVerts, indices, numIndices, GL_TRIANGLES);
+		Mesh sphere = new Mesh(vertices, indices, GL_TRIANGLES);
 		delete vertices;
 		delete indices;
 		
@@ -229,7 +232,7 @@ public:
 			indices[k++] = cast(ushort)(i==segments-1? 2 : j+1);
 		}
 		
-		Mesh cone = new Mesh(vertices, segments + 2, indices, segments * 6, GL_TRIANGLES);
+		Mesh cone = new Mesh(vertices, indices, GL_TRIANGLES);
 		delete indices;
 		delete vertices;
 		
@@ -302,7 +305,7 @@ public:
 			20, 22, 23
 		];
 		
-		return new Mesh(verts, 24, indices, 36, GL_TRIANGLES);
+		return new Mesh(verts, indices, GL_TRIANGLES);
 	}
 	
 	static Mesh CreateCylinder(int segments)
@@ -381,10 +384,82 @@ public:
 		vertEnd.nz = 1.0f;
 		verts[numVerts-2] = vertEnd;
 		
-		Mesh mesh = new Mesh(verts, numVerts, indices, ind, GL_TRIANGLES);
+		Mesh mesh = new Mesh(verts, indices, GL_TRIANGLES);
 		delete verts;
 		delete indices;
 		
+		return mesh;
+	}
+
+	static Mesh LoadMesh(string path)
+	{
+		import meld.maths;
+		vec3[] positions = [];
+		vec2[] uvs = [];
+		vec3[] normals = [];
+
+		ushort[] indices = [];
+		Vertex[] verts = [];
+		ushort[Vertex] vertToInd;
+
+		auto file = File(path);
+		foreach (char[] line; file.byLine())
+		{
+			if (line.empty) continue;
+
+			char[][] parts = strip(line[2..$]).split(' ');
+
+			switch (line[0..2])
+			{
+				case "v ":
+					positions ~= vec3(to!float(parts[0]), to!float(parts[1]), to!float(parts[2]));
+					break;
+
+				case "vt":
+					uvs ~= vec2(to!float(parts[0]), to!float(parts[1]));
+					break;
+
+				case "vn":
+					normals ~= vec3(to!float(parts[0]), to!float(parts[1]), to!float(parts[2]));
+					break;
+
+				case "f ":
+					Vertex Parse(char[][] bits)
+					{
+						//writeln("'" ~ bits[0] ~ "' (" ~ strip(line[2..$]) ~ ")");
+						vec3 pos = positions[to!int(bits[0]) - 1];
+						vec2 uv = bits.length >= 2 ? uvs[to!int(bits[1]) - 1] : vec2.zero;
+						vec3 normal = bits.length >= 3 ? normals[to!int(bits[2]) - 1] : vec3.zero;
+						return Vertex(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, uv.x, uv.y);
+					}
+
+					for (int i = 0; i<parts.length; i++)
+					{
+						Vertex vert = Parse(parts[i].split('/'));
+						ushort* index = vert in vertToInd;
+						ushort ind;
+						if (index is null)
+						{
+							verts ~= vert;
+							ind = to!ushort(verts.length - 1);
+							//vertToInd[vert] = ind;
+						}
+
+						indices ~= ind;
+					}
+					break;
+
+				default:
+    				continue;
+			}
+		}
+
+		Mesh mesh = new Mesh(verts, indices, GL_TRIANGLES);
+		delete verts;
+		delete indices;
+		delete positions;
+		delete uvs;
+		delete normals;
 		return mesh;
 	}
 }

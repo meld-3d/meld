@@ -8,7 +8,7 @@
 		"derelict-gl3": "~master",
 		"derelict-glfw3": "~master"
 	},
-	"targetType": "staticLibrary",
+	"targetType": "sourceLibrary",
 	"configurations": [
 		{
 			"name": "windows-desktop",
