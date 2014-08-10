@@ -9,3 +9,4 @@ public import meld.texture;
 public import meld.window;
 public import meld.input;
 public import meld.gameObject;
+public import meld.fileWatcher;
