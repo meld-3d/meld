@@ -132,6 +132,18 @@ static class FileWatcher
 				}
 			}
 		}
+		else
+		{
+			this(string directory, Callback callback)
+			{
+
+			}
+
+			void Update()
+			{
+				
+			}
+		}
 	}
 
 	static Watcher[] watcherList = [];

@@ -57,7 +57,7 @@ public:
 		glGenBuffers(1, &m_indexBuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ushort.sizeof*indices.length, &indices[0], GL_STATIC_DRAW);
-		m_numIndices = indices.length;
+		m_numIndices = cast(int)indices.length;
 		ErrCheck();
 
 		//Create the vertex layout
