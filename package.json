@@ -13,11 +13,7 @@
 		{
 			"name": "windows-desktop",
 			"platforms": ["windows"],
-			"preBuildCommands": [
-				"dmc -c $PACKAGE_DIR/source/stb_image.c -o$PACKAGE_DIR/.dub/build/stb_image.obj",
-				"lib -c $PACKAGE_DIR/.dub/build/stb_image.lib $PACKAGE_DIR/.dub/build/stb_image.obj"
-			],
-			"libs": ["$PACKAGE_DIR/.dub/build/stb_image"]
+			"libs": ["$PACKAGE_DIR/libs/stb_image"]
 		},
 		{
 			"name": "posix",
