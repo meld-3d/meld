@@ -21,8 +21,7 @@
 		},
 		{
 			"name": "posix",
-			"preBuildCommands": ["gcc -c -o $PACKAGE_DIR/.dub/build/stb_image.o $PACKAGE_DIR/source/stb_image.c"],
-			"lflags": ["$PACKAGE_DIR/.dub/build/stb_image.o"]
+			"lflags": ["$PACKAGE_DIR/libs/stb_image.o"]
 		}
 	],
 	"buildTypes": {
