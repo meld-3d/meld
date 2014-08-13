@@ -2,6 +2,7 @@ module meld.texture;
 
 import derelict.opengl3.gl3;
 import std.string;
+import std.file;
 import stb_image;
 
 class Texture
@@ -21,8 +22,9 @@ class Texture
 	this(string imageFile)
 	{
 		int w, h, n;
-		stbi_uc* data = stbi_load(imageFile.toStringz, &w, &h, &n, 4);
+		ubyte* data = stbi_load_from_memory(read(imageFile), w, h, n, 4);
 		this(w, h, data);
+		stbi_image_free(data);
 	}
 
 	~this()

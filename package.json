@@ -9,17 +9,6 @@
 		"derelict-glfw3": "~master"
 	},
 	"targetType": "sourceLibrary",
-	"configurations": [
-		{
-			"name": "windows-desktop",
-			"platforms": ["windows"],
-			"libs": ["$PACKAGE_DIR/libs/stb_image"]
-		},
-		{
-			"name": "posix",
-			"lflags": ["$PACKAGE_DIR/libs/stb_image.o"]
-		}
-	],
 	"buildTypes": {
 		"release": {
 			"lflags-windows": ["/exet:nt/su:windows"]
