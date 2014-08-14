@@ -4,14 +4,32 @@
 	"copyright": "Copyright © 2014 Alex Parker",
 	"authors": ["Alex Parker"],
 	"license": "BSL-1.0",
-	"dependencies": {
-		"derelict-gl3": "~master",
-		"derelict-glfw3": "~master"
-	},
-	"targetType": "sourceLibrary",
 	"buildTypes": {
 		"release": {
 			"lflags-windows": ["/exet:nt/su:windows"]
 		}
-	}
+	},
+	"configurations": [
+		{
+			"name": "library",
+			"targetType": "sourceLibrary",
+			"sourcePaths": ["engine/source"],
+			"importPaths": ["engine/source"],
+			"dependencies": {
+				"derelict-gl3": "~master",
+				"derelict-glfw3": "~master"
+			},
+			"copyFiles": ["mcb.exe", "glfw3.dll", "assimp.dll"]
+		},
+		{
+			"name": "contentpipeline",
+			"targetType": "executable",
+			"sourcePaths": ["contentpipeline/source"],
+			"importPaths": ["contentpipeline/source"],
+			"dependencies": {
+				"derelict-assimp3": "~master"
+			},
+			"targetName": "mcb"
+		}
+	]
 }
