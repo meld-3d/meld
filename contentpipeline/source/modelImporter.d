@@ -8,7 +8,7 @@ import std.stdio;
 {
 	string targetFile = buildPath(outputFolder, baseName(stripExtension(sourceFile)) ~ ".mdl");
 
-	size_t flags = 
+	uint flags = 
 			  aiProcess_CalcTangentSpace
 			| aiProcess_GenNormals
 			| aiProcess_Triangulate
@@ -22,7 +22,7 @@ import std.stdio;
 			| aiProcess_OptimizeGraph
 			| aiProcess_FindInvalidData
 			| aiProcess_SortByPType;
-	const(aiScene)* scene = aiImportFile(sourceFile.toStringz, flags);
+	const(aiScene)* scene = aiImportFile(cast(const(char*))sourceFile.toStringz, flags);
 	if (!scene)
 	{
 		string errorMessage = to!string(aiGetErrorString());

@@ -12,24 +12,25 @@
 	"configurations": [
 		{
 			"name": "library",
-			"targetType": "sourceLibrary",
+			"targetType": "library",
 			"sourcePaths": ["engine/source"],
 			"importPaths": ["engine/source"],
 			"dependencies": {
 				"derelict-gl3": "~master",
 				"derelict-glfw3": "~master"
 			},
-			"copyFiles": ["mcb.exe", "glfw3.dll", "assimp.dll"]
+			"copyFiles-windows": ["$PACKAGE_DIR/lib/mcb.exe", "$PACKAGE_DIR/lib/glfw3.dll", "$PACKAGE_DIR/lib/assimp.dll"],
+			"copyFiles-osx": ["$PACKAGE_DIR/lib/mcb"]
 		},
 		{
-			"name": "contentpipeline",
+			"name": "mcb",
 			"targetType": "executable",
 			"sourcePaths": ["contentpipeline/source"],
 			"importPaths": ["contentpipeline/source"],
 			"dependencies": {
 				"derelict-assimp3": "~master"
 			},
-			"targetName": "mcb"
+			"targetName": "lib/mcb"
 		}
 	]
 }
