@@ -9,7 +9,7 @@ class Camera
 {
 private:
 	vec2 m_rot = vec2(0.0f, 0.0f);
-	vec3 m_pos = vec3(0.0f, -2.0f, 10.0f), m_fwd = vec3(0.0f, 0.0f, 1.0f);
+	vec3 m_pos = vec3(0.0f, 2.0f, 0.0f), m_fwd = vec3(0.0f, 0.0f, 1.0f);
 	mat4 m_viewProj, m_proj;
 	bool m_dirty = true;
 

@@ -4,49 +4,6 @@ import meld;
 
 import std.algorithm;
 
-class Transform
-{
-private:
-	bool _transformDirty = false;
-	mat4 _localToWorld = mat4.identity;
-	vec3 _position = vec3.zero, _forward = vec3.forward;
-
-public:
-	GameObject gameObject;
-	Transform parent;
-
-	@property mat4 localToWorld() 
-	{
-		if (_transformDirty)
-		{
-			if (parent is null)
-				_localToWorld = mat4.basis(_position, _forward, vec3.up);
-			else
-				_localToWorld = parent.localToWorld * mat4.basis(_position, _forward, vec3.up);
-		}
-
-		_transformDirty = false;
-		return _localToWorld; 
-	}
-	
-	@property vec3 position() { return _position; }
-	@property void position(vec3 value) { _position = value; _transformDirty = true; }
-
-	@property vec3 forward() { return _forward; }
-	@property void forward(vec3 value) { _forward = value; _transformDirty = true; }
-
-	void LookAt(vec3 position)
-	{
-		_forward = (position - _position).normalized();
-		_transformDirty = true;
-	}
-
-	vec3 ToWorld(vec3 point)
-	{
-		return localToWorld * point;
-	}
-}
-
 abstract class Component(T)
 {
 package:

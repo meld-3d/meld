@@ -30,7 +30,8 @@ import std.file : write;
 			| aiProcess_RemoveRedundantMaterials
 			| aiProcess_GenSmoothNormals
 			| aiProcess_OptimizeGraph
-			| aiProcess_FindInvalidData;
+			| aiProcess_FindInvalidData
+			| aiProcess_SortByPType;
 	const(aiScene)* scene = aiImportFile(cast(const(char*))sourceFile.toStringz, flags);
 	if (!scene)
 	{
@@ -55,14 +56,14 @@ import std.file : write;
 	{
 		vert.pos = cast(vec3)mesh.mVertices[j];
 		vert.normal = cast(vec3)mesh.mNormals[j];
-		vert.uv = vec2(mesh.mTextureCoords[0][j].x, mesh.mTextureCoords[0][j].y);
+		vert.uv = vec2(mesh.mTextureCoords[0][j].x, 1.0f - mesh.mTextureCoords[0][j].y);
 	}
 
 	//Output faces
-	outputMesh.indices = new ushort[mesh.mNumFaces*3];
+	outputMesh.indices = [];
 	foreach (int j; 0..mesh.mNumFaces)
-		foreach (int k; 0..3)
-			outputMesh.indices[j+k] = cast(ushort)mesh.mFaces[j].mIndices[k];
+		foreach (int k; 0..mesh.mFaces[j].mNumIndices)
+			outputMesh.indices ~= cast(ushort)mesh.mFaces[j].mIndices[k];
 
 	ubyte[] contents = pack(outputMesh);
 	write(targetFile, contents);

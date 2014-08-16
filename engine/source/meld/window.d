@@ -8,6 +8,8 @@ import core.thread;
 import meld;
 import std.string;
 
+import meld.fileWatcher;
+
 import std.c.stdio : fputs, fputc, stderr;
 
 extern(C) nothrow void glfwPrintError(int error, const(char)* description) {
@@ -73,6 +75,8 @@ public:
 	{
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
+
+		FileWatcher.Update();
 	}
 
 	double Time()

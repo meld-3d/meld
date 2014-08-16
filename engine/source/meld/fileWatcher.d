@@ -1,5 +1,7 @@
 module meld.fileWatcher;
 
+import std.string;
+
 static class FileWatcher
 {
 	alias Callback = void delegate(string file);
@@ -10,7 +12,6 @@ static class FileWatcher
 		{
 			import core.sys.windows.windows;
 			import core.stdc.stdlib;
-			import std.string;
 			import core.stdc.string;
 			import std.conv;
 
@@ -146,16 +147,33 @@ static class FileWatcher
 		}
 	}
 
-	static Watcher[] watcherList = [];
+	static Watcher contentWatcher = null;
+	alias void delegate() FileChangeCallback;
 
-	static void RegisterCallback(string directory, Callback callback)
+	static FileChangeCallback[string] callbackList;
+
+	static void Watch(string sourceFile, void delegate() callback)
 	{
-		watcherList ~= new Watcher(directory, callback);
+		import std.stdio : writeln;
+		if (contentWatcher is null)
+		{
+			contentWatcher = new Watcher("data", (changedFile)
+			{
+				changedFile = translate(changedFile, ['\\': '/']);
+				writeln(changedFile ~ " changed");
+
+				FileChangeCallback* callback = changedFile in callbackList;
+				if (callback)
+					(*callback)();
+			});
+		}
+		writeln("Listening for changes to " ~ sourceFile);
+		callbackList[sourceFile] = callback;
 	}
 
 	static void Update()
 	{
-		foreach (Watcher watcher; watcherList)
-			watcher.Update();
+		if (contentWatcher !is null)
+			contentWatcher.Update();
 	}
 }

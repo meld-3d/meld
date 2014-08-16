@@ -21,21 +21,22 @@
 			"sourcePaths": ["engine/source"],
 			"importPaths": ["engine/source"],
 			"targetPath": "bin",
-			"copyFiles-windows": ["lib/assimp.dll", "lib/glfw3.dll"], 
-			"preBuildCommands": ["cd $PACKAGE_DIR && dub build --config=mcb"],
-			"postBuildCommands-OSX": ["$PACKAGE_DIR/bin/mcb"],
-			"postBuildCommands-windows": ["$PACKAGE_DIR/bin/mcb.exe"]
+			"copyFiles-windows": ["lib/glfw3.dll"],
+			"postBuildCommands-OSX": ["cd $PACKAGE_DIR && dub build --config=mcb", "$PACKAGE_DIR/bin/mcb"],
+			"postBuildCommands-windows": ["cd $PACKAGE_DIR && dub build --config=mcb", "$PACKAGE_DIR/bin/mcb.exe"]
 		},
 		{
 			"name": "mcb",
 			"targetType": "executable",
-			"sourcePaths": ["contentpipeline/source", "engine/source"],
+			"copyFiles-windows": ["lib/assimp.dll"],
+			"sourcePaths": ["contentpipeline/source"],
 			"importPaths": ["contentpipeline/source", "engine/source"],
 			"dependencies": {
 				"derelict-assimp3": "~master"
 			},
 			"targetName": "mcb",
-			"targetPath": "bin"
+			"targetPath": "bin",
+			"libs": ["$PACKAGE_DIR/bin/meld"]
 		}
 	]
 }

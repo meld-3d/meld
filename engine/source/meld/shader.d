@@ -37,7 +37,91 @@ private:
 	static GLuint s_currentShader = 0;
 
 public:
+	static Shader[string] m_loadedShaders;
+
+	static Shader Find(string glslFile)
+	{
+		Shader* existing = glslFile in m_loadedShaders;
+		if (existing !is null)
+			return *existing;
+
+		Shader newShader = new Shader(glslFile);
+		m_loadedShaders[glslFile] = newShader;
+		return newShader;
+	}
+
+package:
 	this(string glslFile)
+	{
+		import meld.fileWatcher : FileWatcher;
+		FileWatcher.Watch(glslFile, ()
+		{
+			writeln("Reloading " ~ glslFile);
+			Destroy();
+			Load(glslFile);
+		});
+		Load(glslFile);
+	}
+
+	~this()
+	{
+		Destroy();
+	}
+
+private:
+	void Destroy()
+	{
+		glDeleteShader(m_vertexShader);
+		glDeleteShader(m_pixelShader);
+		glDeleteProgram(m_program);
+	}
+
+	void LoadAndCompile( string shaderSource, GLuint shader )
+	{
+		//Attach source and compile
+		int len = cast(int)shaderSource.length;
+		const char* source = shaderSource.toStringz();
+		glShaderSource(shader, 1, cast(const GLchar**)&source, &len);
+		glCompileShader(shader);
+
+		//Did we compile ok?
+		GLint compiled;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+		if (!compiled)
+			throw new Exception("Shader compilation failed!" ~ newline ~ GetLog(&glGetShaderInfoLog, shader));
+		
+		glAttachShader(m_program, shader);
+		glBindAttribLocation(m_program, 0, "inVertex");
+		glBindAttribLocation(m_program, 1, "inNormal");
+		glBindAttribLocation(m_program, 2, "inTex");
+	}
+
+	static string GetLog(T)(T method, GLint object)
+	{
+		GLint logLength;
+		GLsizei actualLogLength = 0;
+		glGetShaderiv(object, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength <= 0)
+			return "";
+
+		GLchar[] compilerLog = new GLchar[logLength];
+		(*method)(object, logLength, &actualLogLength, cast(char*)compilerLog);
+
+		return to!string(compilerLog);
+	}
+
+	void Link()
+	{
+		glLinkProgram(m_program);
+
+		//Did we link ok?
+		GLint linked;
+		glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
+		if (!linked)
+			throw new Exception("Failed to link shader: " ~ GetLog(&glGetProgramInfoLog, m_program));
+	}
+
+	void Load(string glslFile)
 	{
 		auto file = File(glslFile);
 
@@ -57,139 +141,31 @@ public:
 		}
 
  		m_program = glCreateProgram();
-		Load(cast(string)vertexContents, cast(string)pixelContents);
-	}
 
-private:
-	bool LoadAndCompile( string shaderSource, ShaderType shaderType )
-	{
-		//Create and load the shader
-		GLuint shader = 0;
-		switch (shaderType)
+		LoadAndCompile(cast(string)vertexContents, glCreateShader(GL_VERTEX_SHADER));
+		LoadAndCompile(cast(string)pixelContents, glCreateShader(GL_FRAGMENT_SHADER));
+		Link();
+		Bind();
+
+		//Reset textures
+		foreach (string paramName; m_textures.byKey)
 		{
-		default:
-		case ShaderType.Vertex:
-			if (!m_vertexShader)
-				m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-			shader = m_vertexShader;
-			break;
-		case ShaderType.Pixel:
-			if (!m_pixelShader)
-				m_pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-			shader = m_pixelShader;
-			break;
-		}
-
-		//Attach source and compile
-		int len = cast(int)shaderSource.length;
-		const char* source = shaderSource.toStringz();
-		glShaderSource(shader, 1, cast(const GLchar**)&source, &len);
-		glCompileShader(shader);
-
-		//Did we compile ok?
-		GLint compiled;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-		if (compiled)
-		{
-			glAttachShader(m_program, shader);
-
-			glBindAttribLocation(m_program, 0, "inVertex");
-			glBindAttribLocation(m_program, 1, "inNormal");
-			glBindAttribLocation(m_program, 2, "inTex");
-
-			return true;
-		}
-		else
-		{
-			writeln("Shader Compilation Failed!");
-			writeln(shaderSource);
-			PrintLog(shader);
-	        throw new Exception("Shader compilation failed");
+			GLint loc = glGetUniformLocation(m_program, paramName.toStringz);
+			GLint tu = m_textures[paramName].textureUnit;
+			glUniform1i(loc, tu);
 		}
 	}
 
-	void PrintLog(GLint shader)
-	{
-		GLint logLength;
-		GLsizei actualLogLength = 0;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-		if (logLength > 1)
-		{
-			writeln("Compile Log:");
-			GLchar[] compilerLog = new GLchar[logLength];
-			glGetShaderInfoLog(shader, logLength, &actualLogLength, cast(char*)compilerLog);
-
-			writeln(compilerLog);
-		}
-	}
-
-	void PrintProgramLog(GLint program)
-	{
-	    GLint logLength;
-	    GLsizei actualLogLength = 0;
-	    glGetShaderiv(program, GL_INFO_LOG_LENGTH, &logLength);
-	    if (logLength > 0)
-	    {
-	        writeln("Link Log:");
-	        GLchar[] compilerLog = new GLchar[logLength];
-	        glGetProgramInfoLog(program, logLength, &actualLogLength, cast(char*)compilerLog);
-	        
-	        writeln(compilerLog);
-	        delete compilerLog;
-	    }
-	}
-
-	bool Link()
-	{
-		glLinkProgram(m_program);
-
-		//Did we link ok?
-		GLint linked;
-		glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
-		if (linked)
-		{
-			return true;
-		}
-		else
-		{
-			writeln("Failed to link shader!");
-			PrintProgramLog(m_program);
-			return false;
-		}
-	}
-
-	bool Load(string vertexShaderFile, string pixelShaderFile)
-	{
-		if (LoadAndCompile(vertexShaderFile, ShaderType.Vertex) && LoadAndCompile(pixelShaderFile, ShaderType.Pixel) && Link())
-		{
-			Bind();
-
-			//Reset textures
-			foreach (string paramName; m_textures.byKey)
-			{
-				GLint loc = glGetUniformLocation(m_program, paramName.toStringz);
-				GLint tu = m_textures[paramName].textureUnit;
-				glUniform1i(loc, tu);
-			}
-			
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-public:
-	void Bind()
+package:
+	bool Bind()
 	{
 		if (s_currentShader != m_program)
 		{
 			s_currentShader = m_program;
 			glUseProgram(m_program);
+			return true;
 		}
+		return false;
 	}
 
 	void SetParameter( string paramName, mat4 matrix )
@@ -214,8 +190,6 @@ public:
 
 	void SetParameter( string paramName, Texture texture )
 	{
-		Bind();
-
 		if (texture.m_texture != 0)
 		{
 			TextureUnit* textureParam = paramName in m_textures;
