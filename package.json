@@ -9,28 +9,33 @@
 			"lflags-windows": ["/exet:nt/su:windows"]
 		}
 	},
+	"dependencies": {
+		"derelict-gl3": "~master",
+		"derelict-glfw3": "~master",
+		"msgpack-d": ">=0.9.1"
+	},
 	"configurations": [
 		{
 			"name": "library",
 			"targetType": "library",
 			"sourcePaths": ["engine/source"],
 			"importPaths": ["engine/source"],
-			"dependencies": {
-				"derelict-gl3": "~master",
-				"derelict-glfw3": "~master"
-			},
-			"copyFiles-windows": ["$PACKAGE_DIR/lib/mcb.exe", "$PACKAGE_DIR/lib/glfw3.dll", "$PACKAGE_DIR/lib/assimp.dll"],
-			"copyFiles-osx": ["$PACKAGE_DIR/lib/mcb"]
+			"targetPath": "bin",
+			"copyFiles-windows": ["lib/assimp.dll", "lib/glfw3.dll"], 
+			"preBuildCommands": ["cd $PACKAGE_DIR && dub build --config=mcb"],
+			"postBuildCommands-OSX": ["$PACKAGE_DIR/bin/mcb"],
+			"postBuildCommands-windows": ["$PACKAGE_DIR/bin/mcb.exe"]
 		},
 		{
 			"name": "mcb",
 			"targetType": "executable",
-			"sourcePaths": ["contentpipeline/source"],
-			"importPaths": ["contentpipeline/source"],
+			"sourcePaths": ["contentpipeline/source", "engine/source"],
+			"importPaths": ["contentpipeline/source", "engine/source"],
 			"dependencies": {
 				"derelict-assimp3": "~master"
 			},
-			"targetName": "lib/mcb"
+			"targetName": "mcb",
+			"targetPath": "bin"
 		}
 	]
 }

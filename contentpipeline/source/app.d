@@ -4,12 +4,12 @@ import std.file;
 import std.path;
 import std.algorithm;
 import std.array;
-import derelict.assimp3.assimp : DerelictASSIMP3;
 import modelImporter : modelImporter;
 
 void main()
 {
 	writeln("Meld Content Builder");
+	writeln("Building Content...");
 
 	if (!exists("content"))
 		throw new Exception("Failed to find content folder");
@@ -17,30 +17,25 @@ void main()
 	alias string function(string sourceFile, string outputFolder) BuildMethod;
 	BuildMethod[string[]] fileTypeToPipeline = 
 	[
+		[".glsl", ".jpg", ".png"]: &copyFiles,
 		[__traits(getAttributes, modelImporter)]: &modelImporter
 	];
-
-	DerelictASSIMP3.load();
 	
-	if (!exists("data"))
-		mkdir("data");
+	immutable string targetFolder = "bin/data";
+	if (!exists(targetFolder))
+		mkdir(targetFolder);
 
 	foreach (string file; dirEntries("content", "*.*", SpanMode.depth))
 	{
 		auto desiredExt = extension(file);
-		BuildMethod buildMethod = &copyFiles;
-
 		foreach (extensions, method; fileTypeToPipeline)
 			if (canFind(extensions, desiredExt))
 			{
-				buildMethod = method;
+				writeln("Building " ~ file);
+				string outputFile = method(file, targetFolder);
+				writeln("\t-> " ~ outputFile);
 				break;
 			}
-
-		//TODO: only build content if changed
-		writeln("Building " ~ file);
-		string outputFile = buildMethod(file, "data");
-		writeln("\t-> " ~ outputFile);
 	}
 }
 

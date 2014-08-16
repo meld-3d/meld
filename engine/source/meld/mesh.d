@@ -7,22 +7,43 @@ import std.math;
 import std.file;
 import std.range;
 import std.string;
+import meld.maths;
 
 struct Vertex
 {
-	this(float x, float y, float z, float nx, float ny, float nz, float tx, float ty)
+	this(float x, float y, float z, float nx, float ny, float nz, float u, float v)
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
-		this.nx = nx;
-		this.ny = ny;
-		this.nz = nz;
-		this.tx = tx;
-		this.ty = ty;
+		pos = vec3(x, y, z);
+		normal = vec3(nx, ny, nz);
+		uv = vec2(u, v);
+	}
+	this(vec3 pos, vec3 normal, vec2 uv)
+	{
+		this.pos = pos;
+		this.normal = normal;
+		this.uv = uv;
 	}
 
-    float x, y, z, nx, ny, nz, tx, ty;
+	vec3 pos;
+	vec3 normal;
+	vec2 uv;
+
+	static void SetupLayout()
+	{
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(0));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*3));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*6));
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+	}
+}
+
+struct MeshData
+{
+	Vertex[] vertices;
+	ushort[] indices;
 }
 
 class Mesh
@@ -45,12 +66,12 @@ private:
 	}
 
 public:
-	this(ref Vertex[] verts, ref ushort[] indices, GLenum drawMode)
+	this(V)(ref V[] verts, ref ushort[] indices, GLenum drawMode)
 	{
 		//Create the vertex buffer
 		glGenBuffers(1, &m_vertexBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, Vertex.sizeof*verts.length, &verts[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, V.sizeof*verts.length, &verts[0], GL_STATIC_DRAW);
 		ErrCheck();
 
 		//Create the index buffer
@@ -66,15 +87,7 @@ public:
 
 		//Bind the vertex buffer to the layout and specify the format
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(0));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*3));
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, Vertex.sizeof, cast(char*)(float.sizeof*6));
-		ErrCheck();
-
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		glDisableVertexAttribArray(3);
+		V.SetupLayout();
 
 		//Bind the index buffer to the layout
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
@@ -338,8 +351,8 @@ public:
 				indices[ind++] = cast(ushort)(i+1 == segments ? 0 : i+1);
 				indices[ind++] = cast(ushort)(numVerts - 1);
 				
-				vert.nz = 1.0f;
-				vert.z = 1.0f;
+				vert.normal.z = 1.0f;
+				vert.pos.z = 1.0f;
 				verts[i+segments] = vert;
 				
 				indices[ind++] = cast(ushort)(numVerts - 2);
@@ -357,8 +370,8 @@ public:
 				int f = segments*2;
 				verts[i+f] = vert;
 				
-				vert.ty = 1.0f;
-				vert.z = 1.0f;
+				vert.uv.y = 1.0f;
+				vert.pos.z = 1.0f;
 				int s = segments*3;
 				verts[i+s] = vert;
 				
@@ -380,8 +393,8 @@ public:
 				0.0f, 0.0f
 		);
 		verts[numVerts-1] = vertEnd;
-		vertEnd.z = 1.0f;
-		vertEnd.nz = 1.0f;
+		vertEnd.pos.z = 1.0f;
+		vertEnd.normal.z = 1.0f;
 		verts[numVerts-2] = vertEnd;
 		
 		Mesh mesh = new Mesh(verts, indices, GL_TRIANGLES);
@@ -391,7 +404,18 @@ public:
 		return mesh;
 	}
 
-	static Mesh LoadMesh(string path)
+	static Mesh LoadMesh(in string path)
+	{
+		import msgpack;
+		import std.file;
+
+		ubyte[] data = cast(ubyte[])read(path);
+		MeshData meshData = data.unpack!MeshData();
+
+		return new Mesh(meshData.vertices, meshData.indices, GL_TRIANGLES);
+	}
+
+	/*static Mesh LoadMeshObj(string path)
 	{
 		import meld.maths;
 		vec3[] positions = [];
@@ -461,5 +485,5 @@ public:
 		delete uvs;
 		delete normals;
 		return mesh;
-	}
+	}*/
 }
