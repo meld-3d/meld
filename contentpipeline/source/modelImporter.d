@@ -20,16 +20,13 @@ import std.file : write;
 
 	uint flags = 
 			  aiProcess_CalcTangentSpace
-			| aiProcess_GenNormals
 			| aiProcess_Triangulate
-			//| aiProcess_MakeLeftHanded
 			| aiProcess_PreTransformVertices
 			| aiProcess_JoinIdenticalVertices
 			| aiProcess_OptimizeMeshes
 			| aiProcess_ImproveCacheLocality
 			| aiProcess_RemoveRedundantMaterials
 			| aiProcess_GenSmoothNormals
-			| aiProcess_OptimizeGraph
 			| aiProcess_FindInvalidData
 			| aiProcess_SortByPType;
 	const(aiScene)* scene = aiImportFile(cast(const(char*))sourceFile.toStringz, flags);

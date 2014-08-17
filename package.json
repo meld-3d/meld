@@ -22,13 +22,15 @@
 			"importPaths": ["engine/source"],
 			"targetPath": "bin",
 			"copyFiles-windows": ["lib/glfw3.dll"],
-			"postBuildCommands-OSX": ["cd $PACKAGE_DIR && dub build --config=mcb", "$PACKAGE_DIR/bin/mcb"],
+			"copyFiles-osx": ["lib/libglfw3.3.0.dylib"],
+			"postBuildCommands-osx": ["cd $PACKAGE_DIR && dub build --config=mcb", "pwd", "DYLD_LIBRARY_PATH=$PACKAGE_DIR/lib && $PACKAGE_DIR/bin/mcb"],
 			"postBuildCommands-windows": ["cd $PACKAGE_DIR && dub build --config=mcb", "$PACKAGE_DIR/bin/mcb.exe"]
 		},
 		{
 			"name": "mcb",
 			"targetType": "executable",
 			"copyFiles-windows": ["lib/assimp.dll"],
+			"copyFiles-osx": ["lib/libassimp.3.dylib"],
 			"sourcePaths": ["contentpipeline/source"],
 			"importPaths": ["contentpipeline/source", "engine/source"],
 			"dependencies": {
@@ -36,7 +38,8 @@
 			},
 			"targetName": "mcb",
 			"targetPath": "bin",
-			"libs": ["$PACKAGE_DIR/bin/meld"]
+			"libs-windows": ["$PACKAGE_DIR/bin/meld"],
+			"lflags-osx": ["-L$PACKAGE_DIR/bin", "-lmeld"]
 		}
 	]
 }
